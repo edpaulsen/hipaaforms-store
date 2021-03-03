@@ -18,6 +18,10 @@ const apiLoginId = "734DkGFLgU";
 const environment = 'sandbox';
 console.log(clientKey,apiLoginId)
 
+const AuthorizeNetPostUrl = {
+  sandbox: 'https://apitest.authorize.net/xml/v1/request.api'
+}
+
 export default function OrderScreen(props) {
   const orderId = props.match.params.id;
   const [sdkReady, setSdkReady] = useState(false);
