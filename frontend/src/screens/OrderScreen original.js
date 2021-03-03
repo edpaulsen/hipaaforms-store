@@ -8,15 +8,6 @@ import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import { ORDER_PAY_RESET } from '../constants/orderConstants';
 
-// authorize
-import { FormComponent, FormContainer } from "react-authorize-net";
-import { Flex, Box, Text, Heading } from "rebass";
-import styled from "styled-components";
-
-const clientKey = "9e24H7GqU26wNV5m";
-const apiLoginId = "734DkGFLgU";
-console.log(clientKey,apiLoginId)
-
 export default function OrderScreen(props) {
   const orderId = props.match.params.id;
   const [sdkReady, setSdkReady] = useState(false);
@@ -56,45 +47,9 @@ export default function OrderScreen(props) {
     }
   }, [dispatch, order, orderId, sdkReady, successPay]);
 
-  // authorize
-  const [paymentStatus, setPaymentStatus] = useState({status:"unpaid"});
-  const onSuccessHandler = (response: any) => {
-    // Process API response on your backend...
-    this.setState({ status: ["failure", []] });
-};
-const onErrorHandler = (response) => {
-  setPaymentStatus({status:["failure", [response.messages.message.map(err => err.text)]]});
-};
-
   const successPaymentHandler = (paymentResult) => {
     dispatch(payOrder(order, paymentResult));
   };
-
-
-  const Button = styled.button({
-    "&:hover": { cursor: "pointer" },
-    padding: "10px",
-    backgroundColor: "white",
-    border: "2px solid black",
-    fontWeight: 600,
-    borderRadius: "2px"
-});
-  const ErrorComponent = (props: {
-    errors: string[];
-    onBackButtonClick: () => void;
-}) => (
-    <div>
-        <Text fontSize={3} fontWeight={"500"} mb={3}>
-            Failed to process payment
-        </Text>
-        {props.errors.map(error => (
-            <Text py={2}>{error}</Text>
-        ))}
-        <Button onClick={props.onBackButtonClick}>Go Back</Button>
-    </div>
-);
-
-
 
   return loading ? (
     <LoadingBox></LoadingBox>
@@ -225,53 +180,9 @@ const onErrorHandler = (response) => {
                 </li>
               )}
             </ul>
-
-
-            
-
-
-
-
-
           </div>
-
         </div>
-        </div>
-
-        <Box className="AuthApp" p={3}>
-
-{paymentStatus.status === "paid" ? (
-    <Text fontWeight={"500"} fontSize={3} mb={4}>
-        Thank you for your payment!
-    </Text>
-) : paymentStatus.status === "unpaid" ? (
-    <FormContainer
-        environment="sandbox"
-        onError={onErrorHandler}
-        onSuccess={onSuccessHandler}
-        amount={23}
-        component={FormComponent}
-        clientKey={clientKey}
-        apiLoginId={apiLoginId}
-    />
-) : paymentStatus.status === "failure" ? (
-    <ErrorComponent
-        onBackButtonClick={() => paymentStatus.setState({ status: "unpaid" })}
-        errors={paymentStatus.status[1]}
-    />
-) : null}
-</Box>
-
-        </div>
-        
-        
-        
-
-        
-
-    
-
-
+      </div>
+    </div>
   );
-  
 }
