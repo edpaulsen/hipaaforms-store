@@ -15,6 +15,7 @@ import styled from "styled-components";
 
 const clientKey = "9e24H7GqU26wNV5m";
 const apiLoginId = "734DkGFLgU";
+const environment = 'sandbox';
 console.log(clientKey,apiLoginId)
 
 export default function OrderScreen(props) {
@@ -253,6 +254,7 @@ const onErrorHandler = (response) => {
         component={FormComponent}
         clientKey={clientKey}
         apiLoginId={apiLoginId}
+        environment= {environment}
     />
 ) : paymentStatus.status === "failure" ? (
     <ErrorComponent
