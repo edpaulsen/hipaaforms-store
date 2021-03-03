@@ -19,7 +19,7 @@ const environment = 'sandbox';
 console.log(clientKey,apiLoginId)
 
 const AuthorizeNetPostUrl = {
-  sandbox: 'https://apitest.authorize.net/xml/v1/request.api'
+  sandbox: 'https://jstest.authorize.net/v3/AcceptUI.js'
 }
 
 export default function OrderScreen(props) {
