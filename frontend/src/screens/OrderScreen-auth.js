@@ -1,18 +1,36 @@
 import Axios from 'axios';
 import { PayPalButton } from 'react-paypal-button-v2';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Component } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { detailsOrder, payOrder } from '../actions/orderActions';
+import { deliverOrder, detailsOrder, payOrder } from '../actions/orderActions';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
-import { ORDER_PAY_RESET } from '../constants/orderConstants';
+import {
+  ORDER_DELIVER_RESET,
+  ORDER_PAY_RESET,
+} from '../constants/orderConstants';
+
+import { Flex, Box, Text, Heading } from "rebass";
+import styled from "styled-components";
+//import logo from "./logo.svg";
+import { FormComponent, FormContainer } from "react-authorize-net"; 
+
+const clientKey = "9e24H7GqU26wNV5m";
+const apiLoginId = "734DkGFLgU";
+console.log(clientKey,apiLoginId)
+
+
+
+
 
 export default function OrderScreen(props) {
   const orderId = props.match.params.id;
   const [sdkReady, setSdkReady] = useState(false);
   const orderDetails = useSelector((state) => state.orderDetails);
   const { order, loading, error } = orderDetails;
+  const userSignin = useSelector((state) => state.userSignin);
+  const { userInfo } = userSignin;
 
   const orderPay = useSelector((state) => state.orderPay);
   const {
@@ -20,6 +38,12 @@ export default function OrderScreen(props) {
     error: errorPay,
     success: successPay,
   } = orderPay;
+  const orderDeliver = useSelector((state) => state.orderDeliver);
+  const {
+    loading: loadingDeliver,
+    error: errorDeliver,
+    success: successDeliver,
+  } = orderDeliver;
   const dispatch = useDispatch();
   useEffect(() => {
     const addPayPalScript = async () => {
@@ -33,8 +57,26 @@ export default function OrderScreen(props) {
       };
       document.body.appendChild(script);
     };
-    if (!order || successPay || (order && order._id !== orderId)) {
+
+
+
+
+
+
+
+
+
+
+
+
+    if (
+      !order ||
+      successPay ||
+      successDeliver ||
+      (order && order._id !== orderId)
+    ) {
       dispatch({ type: ORDER_PAY_RESET });
+      dispatch({ type: ORDER_DELIVER_RESET });
       dispatch(detailsOrder(orderId));
     } else {
       if (!order.isPaid) {
@@ -45,11 +87,103 @@ export default function OrderScreen(props) {
         }
       }
     }
-  }, [dispatch, order, orderId, sdkReady, successPay]);
+  }, [dispatch, order, orderId, sdkReady, successPay, successDeliver]);
 
   const successPaymentHandler = (paymentResult) => {
     dispatch(payOrder(order, paymentResult));
   };
+  const deliverHandler = () => {
+    dispatch(deliverOrder(order._id));
+  };
+
+  const AuthorizationNet = (paymentResult) => {
+    dispatch(payOrder(order, paymentResult));
+  };
+
+  type State = {
+    status: "paid" | "unpaid" | ["failure", string[]];
+  };
+  
+  const Button = styled.button({
+    "&:hover": { cursor: "pointer" },
+    padding: "10px",
+    backgroundColor: "white",
+    border: "2px solid black",
+    fontWeight: 600,
+    borderRadius: "2px"
+  });
+  
+  const ErrorComponent = (props: {
+    errors: string[];
+    onBackButtonClick: () => void;
+  }) => (
+    <div>
+      <Text fontSize={3} fontWeight={"500"} mb={3}>
+        Failed to process payment
+      </Text>
+      {props.errors.map(error => (
+        <Text py={2}>{error}</Text>
+      ))}
+      <Button onClick={props.onBackButtonClick}>Go Back</Button>
+    </div>
+  );
+  
+  const Header = props => (
+    <Flex py={4}>
+      <Heading>react-authorize-net-example</Heading>
+    </Flex>
+  );
+  
+  class App extends Component<{}, State> {
+    state: State = { status: "unpaid" };
+  
+    onErrorHandler = (response: any) => {
+      this.setState({
+        status: ["failure", response.messages.message.map(err => err.text)]
+      });
+    };
+  
+    onSuccessHandler = (response: any) => {
+      // Process API response on your backend...
+      this.setState({ status: ["failure", []] });
+    };
+  
+    render() {
+      return (
+        <Box className="App" p={3}>
+          <Header />
+          {this.state.status === "paid" ? (
+            <Text fontWeight={"500"} fontSize={3} mb={4}>
+              Thank you for your payment!
+            </Text>
+          ) : this.state.status === "unpaid" ? (
+            <FormContainer
+              environment="sandbox"
+              onError={this.onErrorHandler}
+              onSuccess={this.onSuccessHandler}
+              amount={23}
+              component={FormComponent}
+              clientKey={clientKey}
+              apiLoginId={apiLoginId}
+            /> 
+          ) : this.state.status[0] === "failure" ? (
+            <ErrorComponent
+              onBackButtonClick={() => this.setState({ status: "unpaid" })}
+              errors={this.state.status[1]}
+            />
+          ) : null}
+        </Box>
+      );
+    }
+  }
+
+
+
+
+
+
+
+  
 
   return loading ? (
     <LoadingBox></LoadingBox>
@@ -159,6 +293,7 @@ export default function OrderScreen(props) {
                     <strong>${order.totalPrice.toFixed(2)}</strong>
                   </div>
                 </div>
+                console.log();
               </li>
               {!order.isPaid && (
                 <li>
@@ -175,8 +310,36 @@ export default function OrderScreen(props) {
                         amount={order.totalPrice}
                         onSuccess={successPaymentHandler}
                       ></PayPalButton>
+                      <button
+                        onClick={AuthorizationNet}
+                        onSuccess={successPaymentHandler}
+                        >Authorize.Net Payment</button>
                     </>
                   )}
+
+                       
+                       
+                       
+                       
+                       
+                       
+
+                </li>
+              )}
+
+                {userInfo.isAdmin && order.isPaid && !order.isDelivered && (
+                <li>
+                  {loadingDeliver && <LoadingBox></LoadingBox>}
+                  {errorDeliver && (
+                    <MessageBox variant="danger">{errorDeliver}</MessageBox>
+                  )}
+                  <button
+                    type="button"
+                    className="primary block"
+                    onClick={deliverHandler}
+                  >
+                    Deliver Order
+                  </button>
                 </li>
               )}
             </ul>

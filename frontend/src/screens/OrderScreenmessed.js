@@ -87,28 +87,12 @@ export default function OrderScreen(props) {
 
   const [authorizeNet, setAuthorizeNet] = useState(false);
   const [errorAuthorizeNet, setErrorAuthorizeNet] = useState('');
-setAuthorizeNet
+
 //  const [loadingUpload, setLoadingUpload] = useState(false);
 //  const [errorUpload, setErrorUpload] = useState('');
   
   const authorizeNetHandler = async (e) => {
-    const file = e.target.files[0];  //only the first selected file
-    const bodyFormData = new FormData();
-    bodyFormData.append('image', file);
-    setAuthorizeNet(true);
-    try {
-      const { data } = await Axios.post('/api/uploads', bodyFormData, {   //ajax request
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      });
-//      setImage(data);
-      setAuthorizeNet(false);
-    } catch (error) {
-      setErrorAuthorizeNet(error.message);
-      setAuthorizeNet(false);
-    }
+    setAuthorizeNet(true);     
   };
 
   // const uploadFileHandler = async (e) => {
